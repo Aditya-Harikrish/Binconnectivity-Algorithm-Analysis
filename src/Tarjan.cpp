@@ -61,15 +61,6 @@ void MakeDFSForest(Graph& graph) {
 
                         graph.TreeNum.at(v) = static_cast<uint32_t>(graph.DFSForest.size() - 1);
                     }
-
-                    // also inserting the edge in the opposite direction
-                    // since the graph and tree are undirected
-                    // try {
-                    //     curTree.AdjMap.at(v).neighbours.push_back(prev);
-                    // } catch (const std::out_of_range& e) {
-                    //     std::cerr << "Error: v (" << v << ") not present in the map: " << e.what() << "\n";
-                    //     exit(1);
-                    // }
                 }
 
                 for (uint32_t i = 0; i < graph.AdjList.at(v).size(); ++i) {
