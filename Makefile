@@ -5,7 +5,7 @@ HEADERS_DIR = $(SRC_DIR)
 CC = clang++
 CFLAGS = -I$(HEADERS_DIR) -g -std=c++17 # -fsanitize=thread 
 
-HEADERS_PATHLESS = mm.hpp
+HEADERS_PATHLESS = utils.h
 HEADERS = $(patsubst %, $(HEADERS_DIR)/%, $(HEADERS_PATHLESS))
 
 EXECUTABLES = tarjan

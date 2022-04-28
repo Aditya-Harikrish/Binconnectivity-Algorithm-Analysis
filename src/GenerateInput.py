@@ -46,7 +46,7 @@ def SetGraph(inputFilePath: str) -> List[set]:
                 firstLine = False
                 graph = [set() for j in range(nrows)]
             else:
-                i, j, value = int(line[0]), int(line[1]), float(line[2])
+                i, j = int(line[0]), int(line[1])
                 graph[i - 1].add(j - 1)
 
     return graph

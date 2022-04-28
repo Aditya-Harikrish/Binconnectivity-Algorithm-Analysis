@@ -1,5 +1,7 @@
 src/temp*
+temp*
 tarjan
+.vscode/
 # Prerequisites
 *.d
 
