@@ -98,8 +98,8 @@ void MakeDFSGraphWithBackEdges(Graph &graph)
             {
                 try
                 {
-                    //curTree.AdjMap.at(prev).parent = v;
-                    curTree.BackEdge.push_back(Tree::DiscoveredBackEdge(prev, v,curTree.AdjMap.at(prev).DiscoveryTime,curTree.AdjMap.at(v).DiscoveryTime));
+                    // curTree.AdjMap.at(prev).parent = v;
+                    curTree.BackEdge.push_back(Tree::DiscoveredBackEdge(prev, v, curTree.AdjMap.at(prev).DiscoveryTime, curTree.AdjMap.at(v).DiscoveryTime));
                 }
                 catch (const std::out_of_range &e)
                 {
@@ -132,17 +132,7 @@ void LoadGraph(std::ifstream &InputFile, Graph &graph)
 
     assert(graph.AdjList.size() == graph.n);
 }
-int checkIfBackEdge(std::vector<std::pair<uint32_t, uint32_t>> myVector, uint32_t a, uint32_t b)
-{
-    for (auto it = myVector.begin(); it != myVector.end(); it++)
-    {
-        if (it->first == a && it->second == b)
-        {
-            return 1;
-        }
-    }
-    return 0;
-}
+
 
 void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
 {
@@ -152,21 +142,30 @@ void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
     std::unordered_set<uint32_t> visited;
     for (uint32_t i = 0; i < Forest.size(); ++i)
     {
-        uint32_t keep_count = Forest[i].AdjMap.size() ;
-        
+        uint32_t keep_count = Forest[i].AdjMap.size();
+
         // sorted by discovery time
         std::sort(Forest[i].BackEdge.begin(), Forest[i].BackEdge.end());
         std::vector<std::vector<uint32_t>> ears;
+        uint32_t ear_num = 0;
         for (uint32_t j = 0; j < Forest[i].BackEdge.size(); ++j)
         {
             std::vector<uint32_t> ear{Forest[i].BackEdge[j].vertex1};
-            cout << "\nEar" << j<< ":";
+            cout << "\nEar" << ear_num << ":";
             cout << Forest[i].BackEdge[j].vertex1 << "-" << Forest[i].BackEdge[j].vertex2;
+            ear_num += 1;
+            if (ear_num == 1)
+            {
+                cout << "\nEar" << ear_num << ":";
+                cout << Forest[i].BackEdge[j].vertex2;
+
+            }
+
             visited.insert(Forest[i].BackEdge[j].vertex1);
             keep_count--;
             ear.push_back(Forest[i].BackEdge[j].vertex2);
-            uint32_t v1=Forest[i].BackEdge[j].vertex1;
-            uint32_t v2= Forest[i].BackEdge[j].vertex2;
+            uint32_t v1 = Forest[i].BackEdge[j].vertex1;
+            uint32_t v2 = Forest[i].BackEdge[j].vertex2;
             EarRemovedAdjList[v1].erase(std::remove(EarRemovedAdjList[v1].begin(), EarRemovedAdjList[v1].end(), v2), EarRemovedAdjList[v1].end());
             EarRemovedAdjList[v2].erase(std::remove(EarRemovedAdjList[v2].begin(), EarRemovedAdjList[v2].end(), v1), EarRemovedAdjList[v2].end());
             while (visited.find(ear.back()) == visited.end())
@@ -175,10 +174,11 @@ void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
                 keep_count--;
                 EarRemovedAdjList[ear.back()].erase(std::remove(EarRemovedAdjList[ear.back()].begin(), EarRemovedAdjList[ear.back()].end(), Forest[i].AdjMap.at(ear.back()).parent), EarRemovedAdjList[ear.back()].end());
                 uint32_t par = Forest[i].AdjMap.at(ear.back()).parent;
-                //cout << "[" << par << ear.back() << "]";
-                if(par<graph.n)
+                // cout << "[" << par << ear.back() << "]";
+                if (par < graph.n)
                     EarRemovedAdjList[par].erase(std::remove(EarRemovedAdjList[par].begin(), EarRemovedAdjList[par].end(), ear.back()), EarRemovedAdjList[par].end());
                 ear.push_back(Forest[i].AdjMap.at(ear.back()).parent);
+
                 cout << "-" << ear.back();
             }
 
@@ -188,7 +188,7 @@ void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
             }
             ears.push_back(ear);
         }
-        if (keep_count > 0 && keep_count <graph.n ) // if unvisited node in the connected Tree
+        if (keep_count > 0 && keep_count < graph.n) // if unvisited node in the connected Tree
         {
             cout << "\nConnected component " << i << " whose DFS Root is " << Forest[i].root << " don't have biconnectivity ";
         }
