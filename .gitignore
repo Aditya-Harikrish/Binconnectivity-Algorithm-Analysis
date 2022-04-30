@@ -1,6 +1,7 @@
 src/temp*
 temp*
 tarjan
+schmidt
 .vscode/
 # Prerequisites
 *.d
