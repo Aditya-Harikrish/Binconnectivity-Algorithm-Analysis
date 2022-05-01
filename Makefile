@@ -13,10 +13,10 @@ all:tarjan schmidt
 # all: $(SRC_DIR)/%.cpp $(HEADERS_DIR)/%.h $(HEADERS_DIR)/%.hpp 
 # 	$(CC) $(CFLAGS) $^ -o $@
 
-tarjan: $(SRC_DIR)/Tarjan.cpp #$(HEADERS)
+tarjan: $(SRC_DIR)/Tarjan.cpp $(HEADERS)
 	$(CC) $(CFLAGS) $(SRC_DIR)/Tarjan.cpp -o $@
 
-schmidt: $(SRC_DIR)/Schmidt.cpp #$(HEADERS)
+schmidt: $(SRC_DIR)/Schmidt.cpp $(HEADERS)
 	$(CC) $(CFLAGS) $(SRC_DIR)/Schmidt.cpp -o $@
 
 debug: CFLAGS += -DDEBUG=1 -Wall -Wextra -O2 -Wswitch-default -Wconversion -Wundef -fsanitize=address -fsanitize=undefined -fstack-protector # -Werror

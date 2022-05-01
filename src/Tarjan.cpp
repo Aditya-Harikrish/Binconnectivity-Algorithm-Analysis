@@ -1,6 +1,8 @@
 #include "utils.h"
 
-using std::cout, std::cin, std::cerr;
+using std::cout;
+using std::cin;
+using std::cerr;
 
 void CheckArgs(int argc, char* argv[]) {
     if (argc != 2) {
