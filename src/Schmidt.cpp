@@ -61,7 +61,15 @@ void MakeDFSGraphWithBackEdges(Graph &graph)
                         cerr << "Error: prev not present in the map!\n";
                         exit(1);
                     }
-
+                    try
+                    {
+                        curTree.AdjMap.at(prev).neighbours.push_back(v);
+                    }
+                    catch (const std::out_of_range &e)
+                    {
+                        std::cerr << "Error: Prev (" << prev << ") not present in the map: " << e.what() << "\n";
+                        exit(1);
+                    }
                     if (curTree.AdjMap.count(v) == 0)
                     {
                         curTree.AdjMap.insert({v, Tree::PointProperties(DiscoveryTime)});
@@ -90,8 +98,8 @@ void MakeDFSGraphWithBackEdges(Graph &graph)
             {
                 try
                 {
-                    // curTree.AdjMap.at(prev).parent = v;
-                    curTree.BackEdge.push_back(Tree::DiscoveredBackEdge(prev, v, curTree.AdjMap.at(v).DiscoveryTime));
+                    //curTree.AdjMap.at(prev).parent = v;
+                    curTree.BackEdge.push_back(Tree::DiscoveredBackEdge(prev, v,curTree.AdjMap.at(prev).DiscoveryTime,curTree.AdjMap.at(v).DiscoveryTime));
                 }
                 catch (const std::out_of_range &e)
                 {
@@ -139,47 +147,93 @@ int checkIfBackEdge(std::vector<std::pair<uint32_t, uint32_t>> myVector, uint32_
 void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
 {
     cout << "--------------------EARS___________________________";
-     std::unordered_set<uint32_t> articulatep(graph.n);
+    std::vector<std::vector<uint32_t>> EarRemovedAdjList = graph.AdjList;
+    std::unordered_set<uint32_t> articulatep(graph.n);
     std::unordered_set<uint32_t> visited;
     for (uint32_t i = 0; i < Forest.size(); ++i)
     {
-        uint32_t keep_count = Forest[i].AdjMap.size();
-        // std::vector<std::pair<uint32_t, Tree::PointProperties>> sortedAdjmap = sortmap(Forest[i].AdjMap); // sorted by discovery time
+        uint32_t keep_count = Forest[i].AdjMap.size() ;
+        
+        // sorted by discovery time
         std::sort(Forest[i].BackEdge.begin(), Forest[i].BackEdge.end());
         std::vector<std::vector<uint32_t>> ears;
         for (uint32_t j = 0; j < Forest[i].BackEdge.size(); ++j)
         {
             std::vector<uint32_t> ear{Forest[i].BackEdge[j].vertex1};
-            cout << "\nEar" << j << ":";
+            cout << "\nEar" << j<< ":";
             cout << Forest[i].BackEdge[j].vertex1 << "-" << Forest[i].BackEdge[j].vertex2;
             visited.insert(Forest[i].BackEdge[j].vertex1);
             keep_count--;
             ear.push_back(Forest[i].BackEdge[j].vertex2);
+            uint32_t v1=Forest[i].BackEdge[j].vertex1;
+            uint32_t v2= Forest[i].BackEdge[j].vertex2;
+            EarRemovedAdjList[v1].erase(std::remove(EarRemovedAdjList[v1].begin(), EarRemovedAdjList[v1].end(), v2), EarRemovedAdjList[v1].end());
+            EarRemovedAdjList[v2].erase(std::remove(EarRemovedAdjList[v2].begin(), EarRemovedAdjList[v2].end(), v1), EarRemovedAdjList[v2].end());
             while (visited.find(ear.back()) == visited.end())
             {
                 visited.insert(ear.back());
                 keep_count--;
+                EarRemovedAdjList[ear.back()].erase(std::remove(EarRemovedAdjList[ear.back()].begin(), EarRemovedAdjList[ear.back()].end(), Forest[i].AdjMap.at(ear.back()).parent), EarRemovedAdjList[ear.back()].end());
+                uint32_t par = Forest[i].AdjMap.at(ear.back()).parent;
+                //cout << "[" << par << ear.back() << "]";
+                if(par<graph.n)
+                    EarRemovedAdjList[par].erase(std::remove(EarRemovedAdjList[par].begin(), EarRemovedAdjList[par].end(), ear.back()), EarRemovedAdjList[par].end());
                 ear.push_back(Forest[i].AdjMap.at(ear.back()).parent);
                 cout << "-" << ear.back();
             }
-             if (j != 0 && ear.front() == ear.back()) {
+
+            if (j != 0 && ear.front() == ear.back())
+            {
                 articulatep.insert(ear.front());
             }
             ears.push_back(ear);
         }
-        if (keep_count <= 0)                                                     //if unvisited node in the connected Tree
+        if (keep_count > 0 && keep_count <graph.n ) // if unvisited node in the connected Tree
         {
             cout << "\nConnected component " << i << " whose DFS Root is " << Forest[i].root << " don't have biconnectivity ";
         }
-        else{
+        else
+        {
             cout << "\nConnected component " << i << " whose DFS Root is " << Forest[i].root << " is biconnected!";
         }
 
+        for (auto i : Forest[i].AdjMap)
+        {
+            for (uint32_t r = 0; r < i.second.neighbours.size(); r++)
+            {
+                if (visited.find(i.second.neighbours[r]) == visited.end() && i.second.neighbours.size() != 1)
+                {
+                    articulatep.insert(i.first);
+                }
+            }
+        }
     }
-     cout<<"\n Articulate points: ";
-    for (auto i = articulatep.begin(); i != articulatep.end(); ++i) {
-    std::cout << (*i) << " ";
-}
+    // my logic not sure....need to verify
+    for (uint32_t x = 0; x < graph.n; ++x)
+    {
+        for (uint32_t r = 0; r < graph.AdjList[x].size(); ++r)
+        {
+            if (visited.find(graph.AdjList[x][r]) == visited.end() && graph.AdjList[x].size() != 1)
+            {
+                articulatep.insert(x);
+            }
+        }
+    }
+
+    cout << "\n Articulate points: ";
+    for (auto i = articulatep.begin(); i != articulatep.end(); ++i)
+    {
+        std::cout << (*i) << " ";
+    }
+    cout << "\n Bridges: ";
+    for (uint32_t x = 0; x < graph.n; ++x)
+    {
+        for (uint32_t r = 0; r < EarRemovedAdjList[x].size(); ++r)
+        {
+            if (x < EarRemovedAdjList[x][r])
+                cout << x << "-" << EarRemovedAdjList[x][r] << ",";
+        }
+    }
 }
 int main(int argc, char *argv[])
 {
@@ -193,11 +247,11 @@ int main(int argc, char *argv[])
 
     Graph graph(n);
     LoadGraph(InputFile, graph);
-    //PrintGraph(graph);
+    // PrintGraph(graph);
 
     MakeDFSGraphWithBackEdges(graph);
     CheckBiconnectivity(graph.DFSForest, graph);
-    //PrintForest(graph.DFSForest, graph);
+    // PrintForest(graph.DFSForest, graph);
 
     InputFile.close();
     return 0;

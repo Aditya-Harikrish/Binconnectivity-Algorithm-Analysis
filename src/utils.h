@@ -45,15 +45,22 @@ struct Tree
     {
         uint32_t vertex1;
         uint32_t vertex2;
-        uint32_t DiscoveryTime;
+        uint32_t DiscoveryTime1;
+        uint32_t DiscoveryTime2;
         bool operator<( DiscoveredBackEdge &a) const
         {
-            return DiscoveryTime < a.DiscoveryTime;
+            if( DiscoveryTime2 != a.DiscoveryTime2){
+                return DiscoveryTime2 < a.DiscoveryTime2;
+            }
+            else{
+                return DiscoveryTime1 < a.DiscoveryTime1;
+            }
         }
 
-        DiscoveredBackEdge(uint32_t vertex1, uint32_t vertex2, uint32_t DiscoveryTime)
+        DiscoveredBackEdge(uint32_t vertex1, uint32_t vertex2, uint32_t DiscoveryTime1,uint32_t DiscoveryTime2)
         {
-            this->DiscoveryTime = DiscoveryTime; // dicovery time of vertex 2
+            this->DiscoveryTime1 = DiscoveryTime1;
+            this->DiscoveryTime2 = DiscoveryTime2; // dicovery time of vertex 2
             this->vertex1 = vertex1;
             this->vertex2 = vertex2;
         }
@@ -111,12 +118,8 @@ void OpenInputFile(std::ifstream &InputFile, char *path)
         exit(1);
     }
 }
-// Comparator function to sort pairs
-// according to second value
-bool cmp(const Tree::DiscoveredBackEdge &a, const Tree::DiscoveredBackEdge &b)
-{
-    return a.DiscoveryTime < b.DiscoveryTime;
-}
+
+
 /* std::vector<std::pair<uint32_t,Tree::PointProperties> > sortBackEdge(const std::unordered_map<uint32_t,Tree::PointProperties> & M)
 {
 
