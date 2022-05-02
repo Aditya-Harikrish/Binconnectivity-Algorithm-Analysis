@@ -1,8 +1,9 @@
 #include "utils.h"
-
+#include "Timer.h"
 using std::cerr;
 using std::cin;
 using std::cout;
+
 
 void CheckArgs(int argc, char *argv[])
 {
@@ -133,8 +134,12 @@ void LoadGraph(std::ifstream &InputFile, Graph &graph)
     assert(graph.AdjList.size() == graph.n);
 }
 
-
-void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
+struct atrcuate_bridge
+{
+    std::unordered_set<uint32_t> atriculate;
+    std::vector<std::vector<uint32_t>> bridge;
+};
+atrcuate_bridge CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
 {
     cout << "--------------------EARS___________________________";
     std::vector<std::vector<uint32_t>> EarRemovedAdjList = graph.AdjList;
@@ -158,7 +163,6 @@ void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
             {
                 cout << "\nEar" << ear_num << ":";
                 cout << Forest[i].BackEdge[j].vertex2;
-
             }
 
             visited.insert(Forest[i].BackEdge[j].vertex1);
@@ -234,6 +238,66 @@ void CheckBiconnectivity(std::vector<Tree> &Forest, const Graph &graph)
                 cout << x << "-" << EarRemovedAdjList[x][r] << ",";
         }
     }
+    return atrcuate_bridge{articulatep, EarRemovedAdjList};
+}
+
+void DFS(uint32_t v,uint32_t par,uint32_t b_num,std::unordered_set<uint32_t> &unvisited,std::unordered_set<uint32_t>articulatePoint, std::vector<std::vector< std::pair <uint32_t,uint32_t> >> &biconn,std::vector<std::vector<uint32_t>> Biconnected)
+{
+    // Mark the current node as visited and
+    // print it
+    if(par < Biconnected.size())
+        biconn[b_num].push_back(std::make_pair(v,par));
+    // Recur for all the vertices adjacent
+    // to this vertex
+    
+    for (auto i = Biconnected[v].begin(); i != Biconnected[v].end(); ++i){
+        if (unvisited.find(*i)!=unvisited.end() && articulatePoint.find(*i) == articulatePoint.end() )
+            DFS(*i,v,b_num,unvisited,articulatePoint,biconn,Biconnected);
+        else{
+            biconn[b_num].push_back(std::make_pair(*i,par));
+        }
+    }        
+}
+void findBiconnectedComponent(Graph &graph)
+{
+    atrcuate_bridge s = CheckBiconnectivity(graph.DFSForest, graph);
+    std::vector<std::vector<uint32_t>> Biconnected = graph.AdjList;
+
+    //remove bridges from original graph
+    for (uint32_t x = 0; x < graph.n; ++x)
+    {
+        for (uint32_t r = 0; r < s.bridge[x].size(); ++r)
+        {
+            if (x < s.bridge[x][r])
+            {
+                s.bridge[x].erase(std::remove(s.bridge[x].begin(), s.bridge[x].end(), s.bridge[x][r]), s.bridge[x].end());
+                s.bridge[ s.bridge[x][r]].erase(std::remove(s.bridge[ s.bridge[x][r]].begin(), s.bridge[ s.bridge[x][r]].end(),x), s.bridge[s.bridge[x][r]].end());
+            }
+        }
+    }
+    std::unordered_set<uint32_t> unvisited; // unvisited nodes
+    std::vector<std::vector< std::pair <uint32_t,uint32_t> >> biconn;
+    unvisited.reserve(graph.n);
+    biconn.reserve(graph.n);
+    uint32_t b_num=0;
+    for (uint32_t i = 0; i < graph.n; ++i)
+    {
+        unvisited.insert(i);
+    }
+
+     while (!unvisited.empty())
+    {   
+        auto root = unvisited.begin();
+        if(s.atriculate.find(*root) == s.atriculate.end()){
+            DFS(*root,graph.n,b_num,unvisited,s.atriculate, biconn,Biconnected);
+        }
+        b_num++;
+
+    }   
+    //find biconnected component
+
+
+
 }
 int main(int argc, char *argv[])
 {
@@ -244,6 +308,7 @@ int main(int argc, char *argv[])
 
     uint32_t n;                // number of vertices
     InputFile >> n >> std::ws; // skip the whitespace at the end of the line before switching to line-based reading using getline
+    Timer t;
 
     Graph graph(n);
     LoadGraph(InputFile, graph);
@@ -251,8 +316,11 @@ int main(int argc, char *argv[])
 
     MakeDFSGraphWithBackEdges(graph);
     CheckBiconnectivity(graph.DFSForest, graph);
+    //findBiconnectedComponent(graph);
     // PrintForest(graph.DFSForest, graph);
 
     InputFile.close();
+    auto duration = t.Stop();
+    cout<<"TimeTaken"<<duration;
     return 0;
 }

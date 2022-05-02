@@ -142,7 +142,7 @@ void FindLowTree(Tree &tree, const Graph &graph)
     std::vector<uint32_t> LevelOrder;
     LevelOrderTraversal(tree, LevelOrder);
     PrintLevelOrderTraversal(LevelOrder);
-
+    
     for (auto node = LevelOrder.rbegin(); node != LevelOrder.rend(); ++node)
     {
         auto &CurNode = tree.AdjMap.at(*node);

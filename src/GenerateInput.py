@@ -21,7 +21,7 @@ import os
 import sys
 from colorama import Fore, Back, Style
 from typing import List
-from icecream import ic
+#from icecream import ic
 
 
 def GetFilePath() -> str:
